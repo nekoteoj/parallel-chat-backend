@@ -24,15 +24,15 @@ def init(sio: Server):
             sio.emit('created', utils.query_dict(name_search), room = sid)
         else:
             sio.emit('name', utils.query_dict(name_search), room = sid)
-
+# { username, group_name}
     @sio.on('create_group')
     def add_group_sio(sid, message):
-        print(message)
+        #print(message)
         db = get_db()
         json_message = json.loads(message)
         posts_user = db.User   
         name_search = posts_user.find_one({"username" : json_message["username"]})
-        print(name_search)
+        #print(name_search)
         if not name_search:
             sio.emit('Error-name_not_found', None, room=sid)
         else:
@@ -49,18 +49,17 @@ def init(sio: Server):
                                                 }
                                             ]
                                     }
-                print(json.dumps(group_message))
+                #print(json.dumps(group_message))
                 posts_group.insert_one(group_message).inserted_id
                 group_val = posts_group.find_one({"group_name" : json_message["group_name"]})
                 sio.emit('group_created', utils.query_dict(group_val), room=sid)
 
             else:
                 sio.emit('Error-group_already_created', None, room=sid)
-
-
-
-
-        # else:
-        #     posts_user.insert_one(json_message).inserted_id
-        #     name_search = posts_user.find_one(json_message)
-
+    @sio.on('send_message')
+    # {username, groupname, message}
+    def send_message_sio(sid, message):
+        db = get_db()
+        json_message = json.loads(message)
+        
+        print(message)
