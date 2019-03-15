@@ -49,7 +49,7 @@ def init(sio: Server):
                                                 }
                                             ]
                                     }
-                #print(json.dumps(group_message))
+                # print(json.dumps(group_message))
                 posts_group.insert_one(group_message).inserted_id
                 group_val = posts_group.find_one({"group_name" : json_message["group_name"]})
                 sio.emit('group_created', utils.query_dict(group_val), room=sid)
@@ -61,5 +61,14 @@ def init(sio: Server):
     def send_message_sio(sid, message):
         db = get_db()
         json_message = json.loads(message)
-        
+        posts_text = db.Text
+        text_message =json.dumps({
+                        "group_name" : json_message["group_name"],
+                        "username" : json_message["username"],
+                        "text" : json_message["text"],
+                        "timestamp" : utils.get_current_time()
+                    })
+        posts_text.insert_one(text_message).inserted_id
+        sio.emit('message_sent', text_message, room=sid)
+                
         print(message)
