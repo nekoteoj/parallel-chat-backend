@@ -57,6 +57,7 @@ def init(sio: Server):
 
             else:
                 sio.emit('group_already_created', None, room=sid)
+
     # {username, groupname, text}
     @sio.on('send_message')
     def send_message_sio(sid, message):
@@ -67,11 +68,14 @@ def init(sio: Server):
         text_message ={
                         "group_name" : json_message["group_name"],
                         "username" : json_message["username"],
-                        "message" : json_message["text"],
+                        "text" : json_message["text"],
                         "timestamp" : utils.get_current_time()
                     }
-        #print(json.dumps(text_message))
         posts_text.insert_one(text_message).inserted_id
-        text_message = utils.query_dict(text_message)
         # id is included for total ordering
-        sio.emit('message_sent', json.dumps(text_message) ,  room=sid)
+        sio.emit('message_sent', json.dumps(utils.query_dict(text_message)),  room=sid)
+    # {username, groupname}
+
+    @sio.on('visit_group') #eqivalent to temporary leave new group
+    def visit_group_sio(sid, message):
+        pass
