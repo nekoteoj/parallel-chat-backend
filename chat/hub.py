@@ -44,7 +44,7 @@ def init(sio: Server):
                                         "user" : 
                                             [ 
                                                 { 
-                                                    "name_ID" : str(name_search['_id']),
+                                                    "name_ID" : json_message["username"],
                                                     "last_read" : utils.get_current_time()
                                                 }
                                             ]
