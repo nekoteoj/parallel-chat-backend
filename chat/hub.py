@@ -65,17 +65,48 @@ def init(sio: Server):
         db = get_db()
         json_message = json.loads(message)
         posts_text = db.Text
+
         text_message ={
                         "group_name" : json_message["group_name"],
                         "username" : json_message["username"],
                         "text" : json_message["text"],
                         "timestamp" : utils.get_current_time()
                     }
+
         posts_text.insert_one(text_message).inserted_id
         # id is included for total ordering
         sio.emit('message_sent', json.dumps(utils.query_dict(text_message)),  room=sid)
-    # {username, groupname}
 
+    # {username, groupname}
     @sio.on('visit_group') #eqivalent to temporary leave new group
     def visit_group_sio(sid, message):
-        pass
+        db = get_db()
+        json_message = json.loads(message)
+        posts_user = db.User
+        posts_group = db.Group
+
+        username = json_message["username"]
+        group_name = json_message["group_name"]
+
+        user_state = posts_user.find_one({"username" : username})
+        group_state = posts_group.find_one({"group_name" : group_name})
+        if group_state is not None:
+            print(user_state)
+            print(group_state)
+
+            user_state['current_group'] = group_name
+            #found_group = False
+            for user_status in group_state["user"]:
+                if(user_status["name_ID"] == username):
+                    #found_group = True
+                    user_status["last_read"] = utils.get_current_time()
+
+            print(user_state)        
+            print(group_state)
+            posts_user.update_one({"username" : username}, {"$set" : user_state} )
+            posts_group.update_one({"group_name" : group_name}, {"$set" : group_state} )
+            sio.emit('user_visited', json.dumps(utils.query_dict(user_state)),  room=sid)
+        else:
+            sio.emit('group_not_found', None,  room=sid)
+
+        
