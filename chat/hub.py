@@ -30,24 +30,29 @@ def init(sio: Server):
     def join_group_sio(sid, message):
         message_json = json.loads(message)
         group_name = message_json["group_name"]
-        user_id = message_json["name_id"]
+        name_id = message_json["username"]
         db = get_db()
         group_collection = db.Group
-        group_collection.update_one({
-            "group_name": group_name
-        }, {
-            "$push": {
-                "User": {
-                    "name_ID": user_id,
-                    "last_read": utils.get_current_time()
-                }
-            }
-        })
         group = group_collection.find_one({ "group_name": group_name })
-        sio.enter_room(sid, group_name)
+        if not group:
+            sio.emit("join_error", {
+               "error": "Group Not Found!"
+            }, room=sid)
+            return
+        if name_id not in set(map(lambda x: x['name_ID'], group['user'])):
+            group_collection.update_one({
+                "group_name": group_name
+            }, {
+                "$push": {
+                    "user": {
+                        "name_ID": name_id,
+                        "last_read": utils.get_current_time()
+                    }
+                }
+            })
         sio.emit("join_success", {
-            "group_id": group._id,
-            "group_name": group.group_name
+            "group_id": str(group["_id"]),
+            "group_name": group["group_name"]
         }, room=sid)
         
 # { username, group_name}
