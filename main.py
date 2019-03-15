@@ -4,6 +4,8 @@ from gevent import pywsgi
 from geventwebsocket.handler import WebSocketHandler
 import os
 
+from chat import hub, route
+
 async_mode = 'gevent'
 
 PORT = os.environ.get('PORT', 3000)
@@ -14,17 +16,8 @@ app = Flask(__name__)
 app.wsgi_app = socketio.WSGIApp(sio, app.wsgi_app)
 app.config['SECRET_KEY'] = SECRET_KEY
 
-@app.route('/ping')
-def ping_api():
-    return jsonify({ 'message': 'pong' })
-
-@sio.on('connect')
-def connect_sio(sid, message):
-    print(f'{sid} connected!')
-
-@sio.on('pingg')
-def ping_sio(sid, message):
-    sio.emit('pongg', { 'message': message })
+hub.init(sio)
+route.init(app)
 
 if __name__ == '__main__':
     print(f'Server is running on port {PORT}')
