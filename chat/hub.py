@@ -11,7 +11,7 @@ def init(sio: Server):
     @sio.on('pingg')
     def ping_sio(sid, message):
         sio.emit('pongg', { 'message': message })
-
+# { username}
     @sio.on('find_user')
     def add_name_sio(sid, message):
         db = get_db()
@@ -58,7 +58,7 @@ def init(sio: Server):
             else:
                 sio.emit('group_already_created', None, room=sid)
 
-    # {username, groupname, text}
+    # {username, group_name, text}
     @sio.on('send_message')
     def send_message_sio(sid, message):
         print("--> message recieved <--")
@@ -77,7 +77,7 @@ def init(sio: Server):
         # id is included for total ordering
         sio.emit('message_sent', json.dumps(utils.query_dict(text_message)),  room=sid)
 
-    # {username, groupname}
+    # {username, group_name}
     @sio.on('visit_group') #eqivalent to temporary leave new group
     def visit_group_sio(sid, message):
         db = get_db()
@@ -95,10 +95,8 @@ def init(sio: Server):
             print(group_state)
 
             user_state['current_group'] = group_name
-            #found_group = False
             for user_status in group_state["user"]:
                 if(user_status["name_ID"] == username):
-                    #found_group = True
                     user_status["last_read"] = utils.get_current_time()
 
             print(user_state)        
@@ -106,6 +104,7 @@ def init(sio: Server):
             posts_user.update_one({"username" : username}, {"$set" : user_state} )
             posts_group.update_one({"group_name" : group_name}, {"$set" : group_state} )
             sio.emit('user_visited', json.dumps(utils.query_dict(user_state)),  room=sid)
+
         else:
             sio.emit('group_not_found', None,  room=sid)
 
