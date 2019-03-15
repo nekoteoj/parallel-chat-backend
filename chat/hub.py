@@ -122,8 +122,9 @@ def init(sio: Server):
                 
                 posts_user.update_one({"username" : username}, {"$set" : user_state} )
                 posts_group.update_one({"group_name" : group_name_leave}, {"$set" : group_state_leave} )
-                sio.emit('user_visited', { "userstate" : utils.query_dict(user_state),
-                 "last_time_read_in_visit_group" : visit_group_last_read},  room=sid)
+
+                user_state['last_time_read_in_visiting_group'] = visit_group_last_read
+                sio.emit('user_visited', utils.query_dict(user_state), room=sid)
             else:
                 sio.emit('already_in_the_group', None,  room=sid)
         else:
