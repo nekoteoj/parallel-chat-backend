@@ -57,20 +57,21 @@ def init(sio: Server):
 
             else:
                 sio.emit('group_already_created', None, room=sid)
-
+    # {username, groupname, text}
     @sio.on('send_message')
-    # {username, groupname, message}
     def send_message_sio(sid, message):
+        print("--> message recieved <--")
         db = get_db()
         json_message = json.loads(message)
         posts_text = db.Text
-        text_message =json.dumps({
+        text_message ={
                         "group_name" : json_message["group_name"],
                         "username" : json_message["username"],
-                        "text" : json_message["text"],
+                        "message" : json_message["text"],
                         "timestamp" : utils.get_current_time()
-                    })
+                    }
+        #print(json.dumps(text_message))
         posts_text.insert_one(text_message).inserted_id
-        sio.emit('message_sent', text_message, room=sid)
-                
-        print(message)
+        text_message = utils.query_dict(text_message)
+        # id is included for total ordering
+        sio.emit('message_sent', json.dumps(text_message) ,  room=sid)
