@@ -86,25 +86,46 @@ def init(sio: Server):
         posts_group = db.Group
 
         username = json_message["username"]
-        group_name = json_message["group_name"]
-
         user_state = posts_user.find_one({"username" : username})
-        group_state = posts_group.find_one({"group_name" : group_name})
-        if group_state is not None:
-            print(user_state)
-            print(group_state)
+        group_name_leave = None
+        group_state_leave = None
+        if user_state["current_group"] is not None:
+            print("origin group found")
+            group_name_leave = user_state["current_group"]
+            group_state_leave = posts_group.find_one({"group_name" : group_name_leave})
 
-            user_state['current_group'] = group_name
-            for user_status in group_state["user"]:
-                if(user_status["name_ID"] == username):
-                    user_status["last_read"] = utils.get_current_time()
+        group_name_visit = json_message["group_name"]
+        group_state_visit = posts_group.find_one({"group_name" : group_name_visit})
+        
+        if group_state_visit is not None:
+            if(group_name_visit != group_name_leave):
+                print("----------Original------------")
+                print(user_state)
+                print(group_state_leave)
 
-            print(user_state)        
-            print(group_state)
-            posts_user.update_one({"username" : username}, {"$set" : user_state} )
-            posts_group.update_one({"group_name" : group_name}, {"$set" : group_state} )
-            sio.emit('user_visited', json.dumps(utils.query_dict(user_state)),  room=sid)
+                user_state["current_group"] = group_name_visit
+                #update old group
+                if(group_state_leave is not None):
+                    for user_status in group_state_leave["user"]:
+                        if(user_status["name_ID"] == username):
+                            user_status["last_read"] = utils.get_current_time()
 
+                #get last read time from new group
+                visit_group_last_read = None
+                for user_status in group_state_visit["user"]:
+                    if(user_status["name_ID"] == username):
+                        visit_group_last_read = user_status["last_read"]
+
+                print("----------Updated------------")
+                print(user_state)        
+                print(group_state_leave)
+                
+                posts_user.update_one({"username" : username}, {"$set" : user_state} )
+                posts_group.update_one({"group_name" : group_name_leave}, {"$set" : group_state_leave} )
+                sio.emit('user_visited', { "userstate" : utils.query_dict(user_state),
+                 "last_time_read_in_visit_group" : visit_group_last_read},  room=sid)
+            else:
+                sio.emit('already_in_the_group', None,  room=sid)
         else:
             sio.emit('group_not_found', None,  room=sid)
 
