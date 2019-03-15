@@ -12,7 +12,7 @@ def init(sio: Server):
     def ping_sio(sid, message):
         sio.emit('pongg', { 'message': message })
 
-    @sio.on('add_name')
+    @sio.on('find_user')
     def add_name_sio(sid, message):
         db = get_db()
         posts = db.User
@@ -21,9 +21,10 @@ def init(sio: Server):
         if not name_search:
             posts.insert_one(json_message).inserted_id
             name_search = posts.find_one(json_message)
-            sio.emit('created', utils.query_dict(name_search), room = sid)
+            sio.emit('user_created', utils.query_dict(name_search), room = sid)
         else:
-            sio.emit('name', utils.query_dict(name_search), room = sid)
+            sio.emit('user_found', utils.query_dict(name_search), room = sid)
+
 # { username, group_name}
     @sio.on('create_group')
     def add_group_sio(sid, message):
@@ -34,7 +35,7 @@ def init(sio: Server):
         name_search = posts_user.find_one({"username" : json_message["username"]})
         #print(name_search)
         if not name_search:
-            sio.emit('Error-name_not_found', None, room=sid)
+            sio.emit('name_not_found', None, room=sid)
         else:
             posts_group = db.Group
             group_search = posts_group.find_one({"group_name" : json_message["group_name"]})
@@ -55,7 +56,8 @@ def init(sio: Server):
                 sio.emit('group_created', utils.query_dict(group_val), room=sid)
 
             else:
-                sio.emit('Error-group_already_created', None, room=sid)
+                sio.emit('group_already_created', None, room=sid)
+
     @sio.on('send_message')
     # {username, groupname, message}
     def send_message_sio(sid, message):
