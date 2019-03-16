@@ -18,6 +18,7 @@ def init(sio: Server):
         db = get_db()
         posts = db.User
         json_message = json.loads(message)
+        json_message["current_group"] = None
         name_search = posts.find_one(json_message)
         if not name_search:
             posts.insert_one(json_message).inserted_id
@@ -27,7 +28,7 @@ def init(sio: Server):
             sio.emit('user_found', utils.query_dict(name_search), room = sid)
 
 # { group_name, username }
-    @sio.on('join_group')
+    @sio.on("join_group")
     def join_group_sio(sid, message):
         message_json = json.loads(message)
         group_name = message_json["group_name"]
@@ -52,6 +53,55 @@ def init(sio: Server):
                 }
             })
         sio.emit("join_success", {
+            "group_id": str(group["_id"]),
+            "group_name": group["group_name"]
+        }, room=sid)
+
+    @sio.on("leave_group")
+    def leave_group_sio(sid, message):
+        message_json = json.loads(message)
+        group_name = message_json["group_name"]
+        name_id = message_json["username"]
+        db = get_db()
+        group_collection = db.Group
+        user_collection = db.User
+        user = user_collection.find_one({ "username": name_id })
+        if not user:
+            sio.emit("leave_error", {
+               "error": "User Not Found!"
+            }, room=sid)
+            return
+        group = group_collection.find_one({ "group_name": group_name })
+        if not group:
+            sio.emit("leave_error", {
+               "error": "Group Not Found!"
+            }, room=sid)
+            return
+        if name_id not in set(map(lambda x: x['name_ID'], group['user'])):
+            sio.emit("leave_error", {
+                "error": "User not in group"
+            }, room="sid")
+            return
+        group_collection.update_one({
+            "group_name": group_name
+        }, {
+            "$pull": {
+                "user": {
+                    "name_ID": name_id
+                }
+            }
+        })
+        print("Removed user from group")
+        if user.get("current_group", None) == group_name:
+            user_collection.update_one({
+                "_id": user["_id"]
+            }, {
+                "$set": {
+                    "current_group": None
+                }
+            })
+            print("Removed user's current group")
+        sio.emit("leave_success", {
             "group_id": str(group["_id"]),
             "group_name": group["group_name"]
         }, room=sid)
@@ -120,7 +170,7 @@ def init(sio: Server):
         user_state = posts_user.find_one({"username" : username})
         group_name_leave = None
         group_state_leave = None
-        if user_state["current_group"] is not None:
+        if user_state.get("current_group", None) is not None:
             print("origin group found")
             group_name_leave = user_state["current_group"]
             group_state_leave = posts_group.find_one({"group_name" : group_name_leave})
@@ -151,8 +201,10 @@ def init(sio: Server):
                 print(user_state)        
                 print(group_state_leave)
                 
-                posts_user.update_one({"username" : username}, {"$set" : user_state} )
-                posts_group.update_one({"group_name" : group_name_leave}, {"$set" : group_state_leave} )
+                if user_state is not None:
+                    posts_user.update_one({"username" : username}, {"$set" : user_state} )
+                if group_state_leave is not None:
+                    posts_group.update_one({"group_name" : group_name_leave}, {"$set" : group_state_leave} )
 
                 user_state['last_time_read_in_visiting_group'] = visit_group_last_read
                 sio.emit('user_visited', utils.query_dict(user_state), room=sid)
