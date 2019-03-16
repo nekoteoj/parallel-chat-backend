@@ -1,3 +1,57 @@
+# Noomnim Chat 2 Backend
+
+A part of Parallel and Distributed System mini project
+
+-----
+
+## Prerequisites
+
+* Python 3.6 or above
+* Redis Server (If you want to run in peer mode)
+
+## Setting up project
+
+Create and use virtual environment
+
+```sh
+python -m venv venv
+
+# For windows
+venv\Scripts\activate.bat
+# For unix
+source venv/bin/activate
+```
+
+Install dependencies
+
+```sh
+pip install -r requirements.txt
+```
+
+## Running Server
+
+To set port
+
+```sh
+# For windows
+set PORT=<PORT_NUMBER>
+# For unix
+export PORT=<PORT_NUMBER>
+```
+
+To enable peer mode
+```sh
+# For windows
+set PEER=true
+# For unix
+export PEER=true
+```
+
+Start the server
+
+```sh
+python main.py
+```
 
 ## API (every API receives JSON)
 ### find_user
@@ -7,14 +61,14 @@
 | username | string |User's username |
 #### Object description
 Event 'user_created' (no user in database)
-```
+```json
 {
     "_id": user's id,
     "username": user's username
 }
 ```
 Event 'user_found' (found user in database) // group_list might be add in very recent future
-```
+```json
 {
     "_id": user's database id,
     "username": user's username
@@ -40,16 +94,15 @@ Null
 ```
 
 Event 'group_created' (successful group creation)
-```
+```json
 {
-  "group_name" : group's name,
-  "user" : 
-        [ 
-         { 
+    "group_name" : group's name,
+    "user" : [ 
+        { 
             "name_ID" : username of user that is used to created group,
             "last_read" : the time that the group is created (current time in iso format) 
-         }
-        ]
+        }
+    ]
 }
 ```
 
@@ -64,13 +117,13 @@ Event 'group_created' (successful group creation)
 
 #### Object description
 Event 'message_sent' 
-```
+```json
 {
-      "_id" : database message's id(might be used for total ordering)
-      "group_name" : same as group_name above,
-      "username" : same as username above,
-      "text" : same as text above,
-      "timestamp" : (String) The time that a message arrives at backend 
+    "_id" : database message's id(might be used for total ordering)
+    "group_name" : same as group_name above,
+    "username" : same as username above,
+    "text" : same as text above,
+    "timestamp" : (String) The time that a message arrives at backend 
 }
 ```
 
@@ -94,10 +147,10 @@ Null
 ```
 
 Event 'user_visited' (user successfully enter new group) 
-```
+```json
 {
-      "username" : same as username above,
-      "group_name" : same as group_name above,
-      "last_time_read_in_visiting_group" : (String) Last time that user visit that group (used for fetching unread message)  
+    "username" : same as username above,
+    "group_name" : same as group_name above,
+    "last_time_read_in_visiting_group" : (String) Last time that user visit that group (used for fetching unread message)  
 }
 ```
