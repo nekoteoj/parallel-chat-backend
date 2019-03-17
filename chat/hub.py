@@ -157,7 +157,7 @@ def init(sio: Server):
 
         posts_text.insert_one(text_message).inserted_id
         # id is included for total ordering
-        sio.emit('message_sent', json.dumps(utils.query_dict(text_message)),  room=group_name, skip_sid=sid)
+        sio.emit('message_sent', json.dumps(utils.query_dict(text_message)),  room=group_name)
 
     # {username, group_name}
     @sio.on('visit_group') #eqivalent to temporary leave new group
