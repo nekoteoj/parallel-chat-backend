@@ -23,9 +23,14 @@ def init(sio: Server):
         if not name_search:
             posts.insert_one(json_message).inserted_id
             name_search = posts.find_one(json_message)
+            name_search['group_list'] = []
             sio.emit('user_created', utils.query_dict(name_search), room = sid)
         else:
+            posts_group = db.Group
+            group_all = posts_group.find()
+            print(group_all)
             sio.emit('user_found', utils.query_dict(name_search), room = sid)
+        
 
 # { group_name, username }
     @sio.on("join_group")
