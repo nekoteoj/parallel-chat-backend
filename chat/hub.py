@@ -145,6 +145,7 @@ def init(sio: Server):
         print("--> message recieved <--")
         db = get_db()
         json_message = json.loads(message)
+        group_name = json_message['group_name']
         posts_text = db.Text
 
         text_message ={
@@ -156,7 +157,7 @@ def init(sio: Server):
 
         posts_text.insert_one(text_message).inserted_id
         # id is included for total ordering
-        sio.emit('message_sent', json.dumps(utils.query_dict(text_message)),  room=sid)
+        sio.emit('message_sent', json.dumps(utils.query_dict(text_message)),  room=group_name)
 
     # {username, group_name}
     @sio.on('visit_group') #eqivalent to temporary leave new group
@@ -207,10 +208,58 @@ def init(sio: Server):
                     posts_group.update_one({"group_name" : group_name_leave}, {"$set" : group_state_leave} )
 
                 user_state['last_time_read_in_visiting_group'] = visit_group_last_read
+                sio.leave_room(sid, group_name_leave)
                 sio.emit('user_visited', utils.query_dict(user_state), room=sid)
+                sio.enter_room(sid, group_name_visit)
             else:
                 sio.emit('already_in_the_group', {'Error' : 'User is already in selected chatroom.'},  room=sid)
         else:
             sio.emit('group_not_found', {'Error' : 'Group that user selects can not be found.'},  room=sid)
 
-        
+
+    @sio.on('enter_group')
+    def enter_group_sio(sid, message):
+        db = get_db()
+        json_message = json.loads(message)
+        posts_user = db.User
+        posts_group = db.Group
+        posts_text = db.Text
+        username = json_message["username"]
+        group_name = json_message["group_name"]
+        user_state = posts_user.find_one({"username" : username})
+        user_current_group = user_state.get("current_group", None) 
+        if user_current_group != group_name:
+            posts_user.update_one({"username" : username}, {"$set" : user_state} )
+        group_state = posts_group.find_one({"group_name" : group_name})
+        last_read = None
+        for user in group_state['user']:
+            if user["name_ID"] == username:
+                last_read = user["last_read"]
+                user["last_read"] = utils.get_current_time()
+        if last_read is not None:
+            current_time = utils.get_current_time()
+            unread_cursor = posts_text.find({'group_name':group_name, 'timestamp':{"$gt":last_read, "$lte":current_time}})
+            read_cursor = posts_text.find({'group_name':group_name, 'timestamp':{"$lte":last_read}}).limit(100)
+            unread_message = []
+            read_message = []
+            for m in unread_cursor:
+                message = dict()
+                message['timestamp'] = m['timestamp']
+                message['username'] = m['username']
+                message['group_name'] = m['group_name']
+                message['text'] = m['text']
+                unread_message.append(message)
+            for m in read_cursor:
+                message = dict()
+                message['timestamp'] = m['timestamp']
+                message['username'] = m['username']
+                message['group_name'] = m['group_name']
+                message['text'] = m['text']
+                read_message.append(message)
+            json_messages = json.dumps([unread_message, read_message])
+            sio.emit("enter_group", json_messages, room=sid)
+            posts_group.update_one({"group_name" : group_name}, {"$set" : group_state} )
+            if group_name not in sio.rooms(sid):
+                sio.enter_room(sid, group_name)
+        else:
+            sio.emit('group_not_join', None,  room=sid)
