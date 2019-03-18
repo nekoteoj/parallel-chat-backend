@@ -83,6 +83,13 @@ Event 'user_found' (found user in database) // group_list might be add in very r
 | username | string | User's username |
 | group_name | string | desired group name |
 
+### join_group
+    join group recieve username and group_name that the user want to join
+| Body | Type | Value |
+|:---:|:---:|:---:|
+| username | string | User's username |
+| group_name | string | group name to join |
+
 #### Object description
 Event 'name_not_found' (no username in database)
 ```json
