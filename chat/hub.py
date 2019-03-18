@@ -27,8 +27,13 @@ def init(sio: Server):
             sio.emit('user_created', utils.query_dict(name_search), room = sid)
         else:
             posts_group = db.Group
-            group_all = posts_group.find()
-            print(group_all)
+            group_all = list(posts_group.find())
+            print(list(group_all))
+            group_user = []
+            for group in group_all:
+                if json_message["username"] in map(lambda x: x['name_ID'], group['user']):
+                    group_user.append(group["group_name"])
+            name_search["group_list"] = group_user
             sio.emit('user_found', utils.query_dict(name_search), room = sid)
         
 
