@@ -137,7 +137,7 @@ def init(sio: Server):
                 sio.emit('group_created', utils.query_dict(group_val), room=sid)
 
             else:
-                sio.emit('group_already_created', None, room=sid)
+                sio.emit('group_already_created', {'Error' : 'Group has already been created.'}, room=sid)
 
     # {username, group_name, text}
     @sio.on('send_message')
@@ -209,8 +209,8 @@ def init(sio: Server):
                 user_state['last_time_read_in_visiting_group'] = visit_group_last_read
                 sio.emit('user_visited', utils.query_dict(user_state), room=sid)
             else:
-                sio.emit('already_in_the_group', None,  room=sid)
+                sio.emit('already_in_the_group', {'Error' : 'User is already in selected chatroom.'},  room=sid)
         else:
-            sio.emit('group_not_found', None,  room=sid)
+            sio.emit('group_not_found', {'Error' : 'Group that user selects can not be found.'},  room=sid)
 
         
