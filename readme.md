@@ -85,13 +85,17 @@ Event 'user_found' (found user in database) // group_list might be add in very r
 
 #### Object description
 Event 'name_not_found' (no username in database)
-```
-Null
+```json
+{
+    "Error" : "User could not be found."
+}
 ```
 
 Event 'group_already_created' (group has already been created in database)
-```
-Null
+```json
+{
+    "Error" : "Group has already been created."
+}
 ```
 
 Event 'group_created' (successful group creation)
@@ -138,13 +142,17 @@ Event 'message_sent'
 
 #### Object description
 Event 'already_in_the_group' (user already in that group) // (this might be changed in recent future in case that we want to retrieve message here)
-```
-Null
+```json
+{
+    "Error" : "User is already in selected chatroom."
+}
 ```
 
 Event 'group not found' (group that user want to visit can not be found in database)
-```
-Null
+```json
+{
+    "Error" : "Group that user selects can not be found."
+}
 ```
 
 Event 'user_visited' (user successfully enter new group) 
