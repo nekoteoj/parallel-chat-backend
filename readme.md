@@ -76,6 +76,39 @@ Event 'user_found' (found user in database) // group_list might be add in very r
 }
 ```
 
+### leave_group
+    Login to the system (register if username not in database) 
+| Body | Type | Value |
+|:---:|:---:|:---:|
+| username | string |User's username |
+| group_name | string | Name of group that want to leave |
+
+#### Object description
+Event 'leave_error' (no user in database)
+```json
+{
+    "error": "User Not Found!"
+}
+```
+Event 'leave_error' (no group in database)
+```json
+{
+    "error": "Group Not Found!"
+}
+```
+Event 'leave_error' (no user in group) 
+```json
+{
+    "error": "Group Not Found!"
+}
+```
+Event 'leave_success' (user successfully leave group) 
+```json
+{
+    "group_id": "id of group",
+    "group_name": "name of group",
+}
+```
 ### create_group
     create group recieving username and name the group that wanted to be created
 | Body | Type | Value |
