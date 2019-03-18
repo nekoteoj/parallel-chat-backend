@@ -99,7 +99,7 @@ Event 'leave_error' (no group in database)
 Event 'leave_error' (no user in group) 
 ```json
 {
-    "error": "Group Not Found!"
+    "error": "User not in group!"
 }
 ```
 Event 'leave_success' (user successfully leave group) 
