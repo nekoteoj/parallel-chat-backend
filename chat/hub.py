@@ -116,7 +116,7 @@ def init(sio: Server):
         name_search = posts_user.find_one({"username" : json_message["username"]})
         #print(name_search)
         if not name_search:
-            sio.emit('name_not_found', None, room=sid)
+            sio.emit('name_not_found', {'Error' : 'User could not be found.'}, room=sid)
         else:
             posts_group = db.Group
             group_search = posts_group.find_one({"group_name" : json_message["group_name"]})
