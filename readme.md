@@ -77,7 +77,7 @@ Event 'user_found' (found user in database) // group_list might be add in very r
 ```
 
 ### leave_group
-    Login to the system (register if username not in database) 
+    Leave the group using groupname and username as input (Permanent leave not temporary leave)
 | Body | Type | Value |
 |:---:|:---:|:---:|
 | username | string |User's username |
