@@ -116,13 +116,6 @@ Event 'leave_success' (user successfully leave group)
 | username | string | User's username |
 | group_name | string | desired group name |
 
-### join_group
-    join group recieve username and group_name that the user want to join
-| Body | Type | Value |
-|:---:|:---:|:---:|
-| username | string | User's username |
-| group_name | string | group name to join |
-
 #### Object description
 Event 'name_not_found' (no username in database)
 ```json
@@ -148,6 +141,29 @@ Event 'group_created' (successful group creation)
             "last_read" : "the time that the group is created (current time in iso format)"
         }
     ]
+}
+```
+
+### join_group
+    join group recieve username and group_name that the user want to join
+| Body | Type | Value |
+|:---:|:---:|:---:|
+| username | string | User's username |
+| group_name | string | group name to join |
+
+#### Object Description
+Event 'join_success'
+```json
+{
+    "group_id": "ID of the group",
+    "group_name": "Name of the group"
+}
+```
+
+Event 'join_error'
+```json
+{
+    "error": "Group Not Found!"
 }
 ```
 
