@@ -293,3 +293,25 @@ def init(sio: Server):
             }
         })
         sio.emit("clear_success", room=sid)
+
+    @sio.on("update_lastread")
+    def update_lastread(sid, message):
+        db = get_db()
+        json_message = json.loads(message)
+        posts_user = db.User
+        posts_group = db.Group
+        username = json_message["username"]
+        user_state = posts_user.find_one({"username" : username})
+        group_name_leave = None
+        group_state_leave = None
+        if user_state.get("current_group", None) is not None:
+            group_name_leave = user_state["current_group"]
+            group_state_leave = posts_group.find_one({"group_name" : group_name_leave})
+        else:
+            return
+        #update old group
+        if(group_state_leave is not None):
+            for user_status in group_state_leave["user"]:
+                if(user_status["name_ID"] == username):
+                    user_status["last_read"] = utils.get_current_time()
+            posts_group.update_one({"group_name" : group_name_leave}, {"$set" : group_state_leave})
