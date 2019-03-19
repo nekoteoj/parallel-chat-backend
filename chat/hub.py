@@ -28,7 +28,7 @@ def init(sio: Server):
         else:
             posts_group = db.Group
             group_all = posts_group.find()
-            print(group_all)
+            name_search["current_group"] = None
             sio.emit('user_found', utils.query_dict(name_search), room = sid)
         
 
