@@ -279,3 +279,16 @@ def init(sio: Server):
                 sio.enter_room(sid, group_name)
         else:
             sio.emit('group_not_join', None,  room=sid)
+
+    @sio.on("clear_session")
+    def clear_session(sid, message):
+        json_message = json.loads(message)
+        username = json_message["username"]
+        db = get_db()
+        posts = db.User
+        posts.update_one({"username": username}, {
+            "$set": {
+                "current_group": None
+            }
+        })
+        sio.emit("clear_success", room=sid)
