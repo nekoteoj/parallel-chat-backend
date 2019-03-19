@@ -167,6 +167,41 @@ Event 'join_error'
 }
 ```
 
+### enter_group
+    The event that the user need to done after select the group in the list menu
+| Body | Type | Value |
+|:---:|:---:|:---:|
+| username | string | User's username |
+| group_name | string | Group to enter |
+
+#### Object Description
+Event 'enter_group'
+```json
+[
+    [
+        {
+            "timestamp": "timestamp in ISO",
+            "username": "username",
+            "group_name": "group_name",
+            "text": "text"
+        }
+    ],
+    [
+        {
+            "timestamp": "timestamp in ISO",
+            "username": "username",
+            "group_name": "group_name",
+            "text": "text"
+        }
+    ]
+]
+```
+
+Event 'group_not_join'
+```json
+null
+```
+
 ### send_message
     send message to the group receiving group's name, username, text as input
     
