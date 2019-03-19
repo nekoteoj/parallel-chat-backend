@@ -33,8 +33,9 @@ def init(sio: Server):
             for group in group_all:
                 if json_message["username"] in map(lambda x: x['name_ID'], group['user']):
                     group_user.append(group["group_name"])
-            name_search["current_group"] = None
-            posts.update_one({"username" : username}, {"$set" : name_search} )
+            posts.update_one({"username" : json_message["username"]}, {"$set" : {
+                "current_group": None
+            }} )
             name_search["group_list"] = group_user            
             sio.emit('user_found', utils.query_dict(name_search), room = sid)
         
