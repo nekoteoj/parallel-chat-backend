@@ -65,9 +65,12 @@ def init(sio: Server):
                     }
                 }
             })
-        sio.emit("join_success", {
-            "group_id": str(group["_id"]),
-            "group_name": group["group_name"]
+            sio.emit("join_success", {
+                "group_id": str(group["_id"]),
+                "group_name": group["group_name"]
+            }, room=sid)
+        sio.emit("join_error", {
+            "error": "Already joined!"
         }, room=sid)
 
     @sio.on("leave_group")
