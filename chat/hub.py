@@ -69,6 +69,7 @@ def init(sio: Server):
                 "group_id": str(group["_id"]),
                 "group_name": group["group_name"]
             }, room=sid)
+            return
         sio.emit("join_error", {
             "error": "Already joined!"
         }, room=sid)
